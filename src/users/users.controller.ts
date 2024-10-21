@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Delete, Patch, UseGuards, HttpCode, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, Patch, UseGuards, HttpCode, HttpStatus, UseInterceptors, UploadedFile } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/createUser.dto';
 import { JwtAuthGuard } from '../auth/jwt/jwt.guard';
@@ -6,6 +6,7 @@ import { RolesGuard } from '../auth/roles/roles.guard';
 import { Roles } from '../auth/roles/roles.decorator';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { UpdateUserDto } from './dto/updateUser.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @ApiTags('Users') 
 @Controller('users')
@@ -16,8 +17,9 @@ export class UsersController {
   // @UseGuards(JwtAuthGuard, RolesGuard)
   // @Roles('admin')
   @Post()
-  async create(@Body() createUserDto: CreateUserDto) {
-    const user = await this.usersService.create(createUserDto);
+  @UseInterceptors(FileInterceptor('photo'))
+  async create(@Body() createUserDto: CreateUserDto, @UploadedFile() file: Express.Multer.File) {
+    const user = await this.usersService.create(createUserDto, file);
     return {
       status: HttpStatus.CREATED,
       message: 'Usuario creado exitosamente',
@@ -62,8 +64,9 @@ export class UsersController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
   @Patch(':id')
-  async update(@Param('id') id: number, @Body() updateUserDto: UpdateUserDto) {
-    const user = await this.usersService.update(id, updateUserDto);
+  @UseInterceptors(FileInterceptor('photo'))
+  async update(@Param('id') id: number, @Body() updateUserDto: UpdateUserDto, @UploadedFile() file: Express.Multer.File) {
+    const user = await this.usersService.update(id, updateUserDto, file);
     return {
       status: HttpStatus.OK,
       message: `Usuario con ID ${id} actualizado exitosamente`,

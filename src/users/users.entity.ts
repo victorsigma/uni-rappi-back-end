@@ -17,4 +17,20 @@ export class User {
   @ApiProperty({ enum: ['user', 'admin', 'vendedor'] })
   @Column({ default: 'user' })
   role: string;
+
+  @ApiProperty()
+  @Column({ nullable: true })
+  photoUrl: string;
+
+  @ApiProperty()
+  @Column()
+  controlNumber: string;
+
+  @ApiProperty()
+  @Column()
+  group: string;
+
+  @ApiProperty()
+  @Column()
+  fullName: string;
 }
