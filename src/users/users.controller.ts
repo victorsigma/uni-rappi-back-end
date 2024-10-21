@@ -1,10 +1,10 @@
-import { Controller, Get, Post, Body, Param, Delete, Patch, UseGuards, HttpCode, HttpStatus, UseInterceptors, UploadedFile } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, Patch, UseGuards, UseInterceptors, UploadedFile } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/createUser.dto';
 import { JwtAuthGuard } from '../auth/jwt/jwt.guard';
 import { RolesGuard } from '../auth/roles/roles.guard';
 import { Roles } from '../auth/roles/roles.decorator';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiConsumes, ApiTags } from '@nestjs/swagger';
 import { UpdateUserDto } from './dto/updateUser.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 
@@ -18,10 +18,10 @@ export class UsersController {
   // @Roles('admin')
   @Post()
   @UseInterceptors(FileInterceptor('photo'))
+  @ApiConsumes('multipart/form-data')
   async create(@Body() createUserDto: CreateUserDto, @UploadedFile() file: Express.Multer.File) {
     const user = await this.usersService.create(createUserDto, file);
     return {
-      status: HttpStatus.CREATED,
       message: 'Usuario creado exitosamente',
       data: user
     };
@@ -33,7 +33,6 @@ export class UsersController {
   async findAll() {
     const users = await this.usersService.findAll();
     return {
-      status: HttpStatus.OK,
       message: 'Usuarios encontrados exitosamente',
       data: users
     };
@@ -45,7 +44,6 @@ export class UsersController {
   async findOne(@Param('id') id: number) {
     const user = await this.usersService.findOne(id);
     return {
-      status: HttpStatus.OK,
       message: 'Usuario encontrado exitosamente',
       data: user
     };
@@ -57,7 +55,6 @@ export class UsersController {
   async remove(@Param('id') id: number) {
     await this.usersService.remove(id);
     return {
-      status: HttpStatus.OK,
       message: `Usuario con ID ${id} eliminado exitosamente`
     };
   }
@@ -65,10 +62,10 @@ export class UsersController {
   @Roles('admin')
   @Patch(':id')
   @UseInterceptors(FileInterceptor('photo'))
+  @ApiConsumes('multipart/form-data')
   async update(@Param('id') id: number, @Body() updateUserDto: UpdateUserDto, @UploadedFile() file: Express.Multer.File) {
     const user = await this.usersService.update(id, updateUserDto, file);
     return {
-      status: HttpStatus.OK,
       message: `Usuario con ID ${id} actualizado exitosamente`,
       data: user
     };

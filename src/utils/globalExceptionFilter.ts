@@ -1,5 +1,5 @@
 import { ExceptionFilter, Catch, ArgumentsHost, HttpException, HttpStatus } from '@nestjs/common';
-import { Response } from 'express';
+import { Request, Response } from 'express';
 
 @Catch()
 export class GlobalExceptionFilter implements ExceptionFilter {
@@ -23,6 +23,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       error: exception instanceof HttpException ? (message as any).error || 'Error' : 'Internal Server Error',
       timestamp: new Date().toISOString(),
       path: request.url,
+      method: request.method,
     });
   }
 }
