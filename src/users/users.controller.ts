@@ -30,23 +30,15 @@ export class UsersController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin', 'vendedor')
   @Get()
-  async findAll() {
-    const users = await this.usersService.findAll();
-    return {
-      message: 'Usuarios encontrados exitosamente',
-      data: users
-    };
+  findAll() {
+    return this.usersService.findAll();
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin', 'vendedor')
   @Get(':id')
-  async findOne(@Param('id') id: number) {
-    const user = await this.usersService.findOne(id);
-    return {
-      message: 'Usuario encontrado exitosamente',
-      data: user
-    };
+  findOne(@Param('id') id: number) {
+    return this.usersService.findOne(id);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
