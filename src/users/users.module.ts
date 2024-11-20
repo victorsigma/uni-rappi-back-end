@@ -4,10 +4,11 @@ import { UsersService } from './users.service';
 import { UsersController } from './users.controller';
 import { User } from './users.entity';
 import { FirebaseService } from 'src/utils/firebase.service';
+import { SupabaseService } from 'src/utils/supabase.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([User])],
-  providers: [UsersService, FirebaseService],
+  providers: [UsersService, SupabaseService],
   controllers: [UsersController],
   exports: [UsersService],
 })

@@ -34,8 +34,4 @@ export class CreateUserDto {
   @IsNotEmpty()
   @ApiProperty()
   fullName: string;
-
-  @IsOptional()
-  @ApiProperty({ type: 'string', format: 'binary', required: false })
-  photo: any;
 }

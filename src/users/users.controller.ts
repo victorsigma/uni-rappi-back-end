@@ -17,10 +17,8 @@ export class UsersController {
   // @UseGuards(JwtAuthGuard, RolesGuard)
   // @Roles('admin')
   @Post()
-  @UseInterceptors(FileInterceptor('photo'))
-  @ApiConsumes('multipart/form-data')
-  async create(@Body() createUserDto: CreateUserDto, @UploadedFile() file: Express.Multer.File) {
-    const user = await this.usersService.create(createUserDto, file);
+  async create(@Body() createUserDto: CreateUserDto) {
+    const user = await this.usersService.create(createUserDto);
     return {
       message: 'Usuario creado exitosamente',
       data: user
@@ -50,16 +48,30 @@ export class UsersController {
       message: `Usuario con ID ${id} eliminado exitosamente`
     };
   }
+
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
   @Patch(':id')
-  @UseInterceptors(FileInterceptor('photo'))
-  @ApiConsumes('multipart/form-data')
-  async update(@Param('id') id: number, @Body() updateUserDto: UpdateUserDto, @UploadedFile() file: Express.Multer.File) {
-    const user = await this.usersService.update(id, updateUserDto, file);
+  async update(@Param('id') id: number, @Body() updateUserDto: UpdateUserDto) {
+    const user = await this.usersService.update(id, updateUserDto);
     return {
       message: `Usuario con ID ${id} actualizado exitosamente`,
       data: user
     };
   }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin', 'vendedor', 'usuario')
+  @Patch(':id/photo')
+  @UseInterceptors(FileInterceptor('photo'))
+  @ApiConsumes('multipart/form-data')
+  async updatePhoto(@Param('id') id: number, @UploadedFile() file: Express.Multer.File) {
+    const photoUrl = await this.usersService.uploadPhoto(file); // Subir la imagen
+    const updatedUser = await this.usersService.updatePhoto(id, photoUrl); // Actualizar solo la foto
+    return {
+      message: 'Foto de usuario actualizada exitosamente',
+      data: updatedUser,
+    };
+  }
+
 }
