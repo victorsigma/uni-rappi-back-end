@@ -62,6 +62,7 @@ export class UsersService {
   }
 
   async uploadPhoto(file: Express.Multer.File): Promise<string> {
+    console.log(file);
     return await this.supabaseService.uploadFile(file);
   }
 }

@@ -4,9 +4,10 @@ import { CreateUserDto } from './dto/createUser.dto';
 import { JwtAuthGuard } from '../auth/jwt/jwt.guard';
 import { RolesGuard } from '../auth/roles/roles.guard';
 import { Roles } from '../auth/roles/roles.decorator';
-import { ApiBearerAuth, ApiConsumes, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiConsumes, ApiTags } from '@nestjs/swagger';
 import { UpdateUserDto } from './dto/updateUser.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { UploadImageDto } from './dto/uploadImage.dto';
 
 @ApiTags('Users') 
 @Controller('users')
@@ -65,8 +66,12 @@ export class UsersController {
   @Patch(':id/photo')
   @UseInterceptors(FileInterceptor('photo'))
   @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    type: UploadImageDto,
+  })
   async updatePhoto(@Param('id') id: number, @UploadedFile() file: Express.Multer.File) {
     const photoUrl = await this.usersService.uploadPhoto(file); // Subir la imagen
+    console.log(photoUrl);
     const updatedUser = await this.usersService.updatePhoto(id, photoUrl); // Actualizar solo la foto
     return {
       message: 'Foto de usuario actualizada exitosamente',
