@@ -63,7 +63,7 @@ export class UsersService {
   async updatePhoto(id: number, photoUrl: string): Promise<User> {
     const userToUpdate = await this.findOne(id);
     if (userToUpdate.photoUrl) {
-      await this.supabaseService.deleteFile(userToUpdate.photoUrl);
+      await this.supabaseService.deleteFile(userToUpdate.photoUrl,'Usuarios');
     }
     userToUpdate.photoUrl = photoUrl;
     return this.usersRepository.save(userToUpdate);
@@ -82,14 +82,14 @@ export class UsersService {
     }
 
     // Si todo es válido, subimos la imagen
-    const photoUrl = await this.supabaseService.uploadFile(file); // Usar el servicio de Supabase para cargar el archivo
+    const photoUrl = await this.supabaseService.uploadFile(file,'Usuarios'); // Usar el servicio de Supabase para cargar el archivo
     return photoUrl;
   }
 
   async removePhoto(id: number): Promise<void> {
     const userToUpdate = await this.findOne(id);
     if (userToUpdate.photoUrl) {
-      await this.supabaseService.deleteFile(userToUpdate.photoUrl);
+      await this.supabaseService.deleteFile(userToUpdate.photoUrl,'Usuarios');
       userToUpdate.photoUrl = null;
       await this.usersRepository.save(userToUpdate);
     }

@@ -17,6 +17,7 @@ export class UpdateUserDto {
   @ApiPropertyOptional({ enum: ['user', 'admin', 'vendedor']})
   role?: string;
 
+  @IsOptional()
   @IsEmail({}, { message: 'El correo electrónico no tiene un formato válido.' })
   @IsString({ message: 'El correo electrónico debe ser una cadena de texto.' })
   @ApiProperty()
