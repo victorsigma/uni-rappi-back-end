@@ -12,6 +12,14 @@ export class User {
 
   @ApiProperty()
   @Column()
+  email: string;
+
+  @ApiProperty()
+  @Column()
+  fullName: string;
+
+  @ApiProperty()
+  @Column()
   password: string;
 
   @ApiProperty({ enum: ['user', 'admin', 'vendedor'] })
@@ -20,7 +28,7 @@ export class User {
 
   @ApiProperty()
   @Column({ nullable: true })
-  photoUrl: string;
+  photoUrl: string | null;
 
   @ApiProperty()
   @Column()
@@ -29,8 +37,4 @@ export class User {
   @ApiProperty()
   @Column()
   group: string;
-
-  @ApiProperty()
-  @Column()
-  fullName: string;
 }

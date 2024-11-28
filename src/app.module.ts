@@ -5,15 +5,12 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
-import { MenuController } from './menu/menu.controller';
 import { MenuModule } from './menu/menu.module';
-import { StoreController } from './store/store.controller';
 import { StoreModule } from './store/store.module';
-import { SalesHistoryController } from './sales-history/sales-history.controller';
-import { SalesHistoryService } from './sales-history/sales-history.service';
 import { SalesHistoryModule } from './sales-history/sales-history.module';
-import { ProductController } from './product/product.controller';
 import { ProductModule } from './product/product.module';
+import { SupabaseService } from './utils/supabase.service';
+
 
 @Module({
   imports: [
@@ -35,7 +32,7 @@ import { ProductModule } from './product/product.module';
     SalesHistoryModule,
     ProductModule,
   ],
-  controllers: [AppController, MenuController, StoreController, SalesHistoryController, ProductController],
-  providers: [AppService, SalesHistoryService],
+  controllers: [AppController],
+  providers: [AppService, SupabaseService],
 })
 export class AppModule {}
