@@ -9,6 +9,9 @@ import { MenuController } from './menu/menu.controller';
 import { MenuModule } from './menu/menu.module';
 import { StoreController } from './store/store.controller';
 import { StoreModule } from './store/store.module';
+import { SalesHistoryController } from './sales-history/sales-history.controller';
+import { SalesHistoryService } from './sales-history/sales-history.service';
+import { SalesHistoryModule } from './sales-history/sales-history.module';
 
 @Module({
   imports: [
@@ -27,8 +30,9 @@ import { StoreModule } from './store/store.module';
     UsersModule,
     MenuModule,
     StoreModule,
+    SalesHistoryModule,
   ],
-  controllers: [AppController, MenuController, StoreController],
-  providers: [AppService],
+  controllers: [AppController, MenuController, StoreController, SalesHistoryController],
+  providers: [AppService, SalesHistoryService],
 })
 export class AppModule {}
