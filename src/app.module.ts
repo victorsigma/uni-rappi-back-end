@@ -5,7 +5,12 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
+import { MenuModule } from './menu/menu.module';
+import { StoreModule } from './store/store.module';
+import { SalesHistoryModule } from './sales-history/sales-history.module';
+import { ProductModule } from './product/product.module';
 import { SupabaseService } from './utils/supabase.service';
+
 
 @Module({
   imports: [
@@ -22,6 +27,10 @@ import { SupabaseService } from './utils/supabase.service';
     }),
     AuthModule,
     UsersModule,
+    MenuModule,
+    StoreModule,
+    SalesHistoryModule,
+    ProductModule,
   ],
   controllers: [AppController],
   providers: [AppService, SupabaseService],
