@@ -70,13 +70,21 @@ export class UsersController {
     type: UploadImageDto,
   })
   async updatePhoto(@Param('id') id: number, @UploadedFile() file: Express.Multer.File) {
-    const photoUrl = await this.usersService.uploadPhoto(file); // Subir la imagen
-    console.log(photoUrl);
-    const updatedUser = await this.usersService.updatePhoto(id, photoUrl); // Actualizar solo la foto
+    const photoUrl = await this.usersService.uploadPhoto(file,id); 
+    const updatedUser = await this.usersService.updatePhoto(id, photoUrl);
     return {
       message: 'Foto de usuario actualizada exitosamente',
       data: updatedUser,
     };
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin', 'vendedor', 'usuario')
+  @Delete(':id/photo')
+  async removePhoto(@Param('id') id: number) {
+    await this.usersService.removePhoto(id);
+    return {
+      message: 'Foto de perfil eliminada exitosamente'
+    };
+  }
 }

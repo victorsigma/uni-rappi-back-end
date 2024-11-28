@@ -20,6 +20,10 @@ export class UsersService {
     return this.usersRepository.findOne({ where: { username } });
   }
 
+  async findByEmail(email: string): Promise<User | undefined> {
+    return this.usersRepository.findOne({ where: { email } });  // Buscar por correo
+  }
+
   async create(createUserDto: CreateUserDto): Promise<User> {
     const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
     const newUser = this.usersRepository.create({ ...createUserDto, password: hashedPassword });
@@ -55,14 +59,40 @@ export class UsersService {
     return this.usersRepository.save(userToUpdate);
   }
 
+
   async updatePhoto(id: number, photoUrl: string): Promise<User> {
     const userToUpdate = await this.findOne(id);
+    if (userToUpdate.photoUrl) {
+      await this.supabaseService.deleteFile(userToUpdate.photoUrl);
+    }
     userToUpdate.photoUrl = photoUrl;
     return this.usersRepository.save(userToUpdate);
   }
 
-  async uploadPhoto(file: Express.Multer.File): Promise<string> {
-    console.log(file);
-    return await this.supabaseService.uploadFile(file);
+  async uploadPhoto(file: Express.Multer.File, userId: number): Promise<string> {
+    const user = await this.findOne(userId); // Verificar que el usuario existe
+    if (!file) {
+      throw new BadRequestException('No se ha recibido ninguna imagen.');
+    }
+
+    // Verificar si el archivo es una imagen
+    const fileMimeType = file.mimetype;
+    if (!fileMimeType || !fileMimeType.startsWith('image/')) {
+      throw new BadRequestException('El archivo debe ser una imagen.');
+    }
+
+    // Si todo es válido, subimos la imagen
+    const photoUrl = await this.supabaseService.uploadFile(file); // Usar el servicio de Supabase para cargar el archivo
+    return photoUrl;
   }
+
+  async removePhoto(id: number): Promise<void> {
+    const userToUpdate = await this.findOne(id);
+    if (userToUpdate.photoUrl) {
+      await this.supabaseService.deleteFile(userToUpdate.photoUrl);
+      userToUpdate.photoUrl = null;
+      await this.usersRepository.save(userToUpdate);
+    }
+  }
+
 }
