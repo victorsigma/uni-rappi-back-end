@@ -7,11 +7,11 @@ import { RolesGuard } from 'src/auth/roles/roles.guard';
 import { Roles } from 'src/auth/roles/roles.decorator';
 import { UpdateMenuDto } from './dto/updateMenu.dto';
 
-@ApiTags('Menus') 
+@ApiTags('Menus')
 @Controller('menu')
 @ApiBearerAuth()
 export class MenuController {
-    constructor(private readonly menuService: MenuService) {}
+  constructor(private readonly menuService: MenuService) { }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
