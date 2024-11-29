@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Product } from './product.entity';
-import { Repository } from 'typeorm';
+import { Like, Repository } from 'typeorm';
 import { CreateProductDto } from './dto/createProduct.dto';
 import { UpdateProductDto } from './dto/updateProduct.dto';
 
@@ -31,6 +31,14 @@ export class ProductService {
             throw new NotFoundException(`Product con ID ${id} no encontrado`);
         }
         return user;
+    }
+
+    async findSearch(name: string): Promise<Product[]> {
+        const products = await this.productRepository.find({where: { productname: Like(`%${name}%`)}});
+        if(!products.length) {
+            throw new NotFoundException(`Producto no disponible o no existe`);
+        }
+        return products;
     }
 
     async remove(id: number): Promise<void> {
