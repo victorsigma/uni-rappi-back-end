@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { Roles } from 'src/auth/roles/roles.decorator';
 import { ProductService } from './product.service';
 import { RolesGuard } from 'src/auth/roles/roles.guard';
@@ -33,6 +33,14 @@ export class ProductController {
     @Get(':id')
     findOne(@Param('id') id: number) {
         return this.productService.findOne(id);
+    }
+
+    @UseGuards()
+    @Roles('admin', 'vendedor', 'comprador')
+    @Get("/search")
+    findSearch(@Query('name') name: string) {
+        console.log(name);
+        return this.productService.findSearch(name);
     }
 
     @UseGuards(JwtAuthGuard, RolesGuard)
