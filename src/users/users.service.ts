@@ -25,9 +25,24 @@ export class UsersService {
   }
 
   async create(createUserDto: CreateUserDto): Promise<User> {
-    const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
-    const newUser = this.usersRepository.create({ ...createUserDto, password: hashedPassword });
-    return this.usersRepository.save(newUser);
+    const existingUserByUsername = await this.findByUsername(createUserDto.username);
+    if (existingUserByUsername) {
+      throw new BadRequestException('El nombre de usuario ya está en uso.');
+    }
+    const existingUserByEmail = await this.findByEmail(createUserDto.email);
+    if (existingUserByEmail) {
+      throw new BadRequestException('El correo electrónico ya está en uso.');
+    }
+    try {
+      const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
+      const newUser = this.usersRepository.create({ ...createUserDto, password: hashedPassword });
+      return await this.usersRepository.save(newUser);
+    } catch (error) {
+      if (error.code === '23505') {
+        throw new BadRequestException('El nombre de usuario o el correo ya están en uso.');
+      }
+      throw error;
+    }
   }
 
   async findAll(): Promise<User[]> {
@@ -51,12 +66,34 @@ export class UsersService {
 
   async update(id: number, updateUserDto: UpdateUserDto): Promise<User> {
     const userToUpdate = await this.findOne(id);
+
+    if (updateUserDto.username && updateUserDto.username !== userToUpdate.username) {
+      const existingUserByUsername = await this.findByUsername(updateUserDto.username);
+      if (existingUserByUsername && existingUserByUsername.id !== id) {
+        throw new BadRequestException('El nombre de usuario ya está en uso.');
+      }
+    }
+  
+    if (updateUserDto.email && updateUserDto.email !== userToUpdate.email) {
+      const existingUserByEmail = await this.findByEmail(updateUserDto.email);
+      if (existingUserByEmail && existingUserByEmail.id !== id) {
+        throw new BadRequestException('El correo electrónico ya está en uso.');
+      }
+    }
+  
     if (updateUserDto.password) {
       updateUserDto.password = await bcrypt.hash(updateUserDto.password, 10);
     }
+  
     Object.assign(userToUpdate, updateUserDto);
-
-    return this.usersRepository.save(userToUpdate);
+    try {
+      return await this.usersRepository.save(userToUpdate);
+    } catch (error) {
+      if (error.code === '23505') {
+        throw new BadRequestException('El nombre de usuario o el correo ya están en uso.');
+      }
+      throw error;
+    }
   }
 
 

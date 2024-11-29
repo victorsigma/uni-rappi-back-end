@@ -1,7 +1,10 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, Unique } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 
 @Entity()
+@Unique(['username'])
+@Unique(['email'])
+@Unique(['controlNumber'])
 export class User {
   @PrimaryGeneratedColumn()
   id: number;
