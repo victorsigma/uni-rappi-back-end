@@ -6,7 +6,7 @@ import { JwtAuthGuard } from 'src/auth/jwt/jwt.guard';
 import { CreateProductDto } from './dto/createProduct.dto';
 import { UpdateProductDto } from './dto/updateProduct.dto';
 
-@Controller('product')
+@Controller('products')
 export class ProductController {
     constructor(private readonly productService: ProductService) { }
 
@@ -21,11 +21,14 @@ export class ProductController {
         };
     }
 
-    @UseGuards(RolesGuard)
-    @Roles('admin', 'vendedor', 'comprador')
     @Get()
     findAll() {
         return this.productService.findAll();
+    }
+
+    @Get("/search")
+    findSearch(@Query('name') name: string) {
+        return this.productService.findSearch(name);
     }
 
     @UseGuards(JwtAuthGuard, RolesGuard)
@@ -33,14 +36,6 @@ export class ProductController {
     @Get(':id')
     findOne(@Param('id') id: number) {
         return this.productService.findOne(id);
-    }
-
-    @UseGuards()
-    @Roles('admin', 'vendedor', 'comprador')
-    @Get("/search")
-    findSearch(@Query('name') name: string) {
-        console.log(name);
-        return this.productService.findSearch(name);
     }
 
     @UseGuards(JwtAuthGuard, RolesGuard)

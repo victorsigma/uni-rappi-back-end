@@ -26,11 +26,11 @@ export class ProductService {
     }
 
     async findOne(id: number): Promise<Product> {
-        const user = await this.productRepository.findOne({ where: { id } });
-        if (!user) {
+        const product = await this.productRepository.findOne({ where: { id } });
+        if (!product) {
             throw new NotFoundException(`Product con ID ${id} no encontrado`);
         }
-        return user;
+        return product;
     }
 
     async findSearch(name: string): Promise<Product[]> {
