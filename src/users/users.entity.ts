@@ -1,40 +1,49 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, Unique, OneToOne, JoinColumn } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
+import { Wallet } from 'src/wallet/wallet.entity';
 
 @Entity()
+@Unique(['username'])
+@Unique(['email'])
+@Unique(['controlNumber'])
 export class User {
   @PrimaryGeneratedColumn()
   id: number;
 
   @ApiProperty()
-  @Column()
+  @Column({ name: 'username' })
   username: string;
 
   @ApiProperty()
-  @Column()
+  @Column({ name: 'email' })
   email: string;
 
   @ApiProperty()
-  @Column()
+  @Column({ name: 'full_name' })
   fullName: string;
 
   @ApiProperty()
-  @Column()
+  @Column({ name: 'password' })
   password: string;
 
   @ApiProperty({ enum: ['user', 'admin', 'vendedor'] })
-  @Column({ default: 'user' })
+  @Column({ name: 'role', default: 'user' })
   role: string;
 
   @ApiProperty()
-  @Column({ nullable: true })
+  @Column({ name: 'photo_url', nullable: true })
   photoUrl: string | null;
 
   @ApiProperty()
-  @Column()
+  @Column({ name: 'control_number' })
   controlNumber: string;
 
   @ApiProperty()
-  @Column()
+  @Column({ name: 'group' })
   group: string;
+
+  @ApiProperty()
+  @OneToOne(() => Wallet, (wallet) => wallet.user, { cascade: true, onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'wallet_id' })
+  wallet: Wallet;
 }

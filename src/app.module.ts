@@ -9,7 +9,9 @@ import { MenuModule } from './menu/menu.module';
 import { StoreModule } from './store/store.module';
 import { SalesHistoryModule } from './sales-history/sales-history.module';
 import { ProductModule } from './product/product.module';
-import { SupabaseService } from './utils/supabase.service';
+import { SupabaseService } from './global/supabase.service';
+import { WalletModule } from './wallet/wallet.module';
+import { PaymentsModule } from './payments/payments.module';
 
 
 @Module({
@@ -31,6 +33,8 @@ import { SupabaseService } from './utils/supabase.service';
     StoreModule,
     SalesHistoryModule,
     ProductModule,
+    WalletModule,
+    PaymentsModule,
   ],
   controllers: [AppController],
   providers: [AppService, SupabaseService],

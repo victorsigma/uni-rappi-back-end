@@ -2,21 +2,22 @@ import { IsString, IsOptional, IsEnum, IsEmail } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class UpdateUserDto {
-  @IsString({ message: 'El nombre de usuario debe ser una cadena de texto.' })
   @IsOptional()
+  @IsString({ message: 'El nombre de usuario debe ser una cadena de texto.' })
   @ApiPropertyOptional()
   username?: string;
 
-  @IsString({ message: 'La contraseña debe ser una cadena de texto.' })
   @IsOptional()
+  @IsString({ message: 'La contraseña debe ser una cadena de texto.' })
   @ApiPropertyOptional()
   password?: string;
 
-  @IsEnum(['user', 'admin', 'vendedor'], { message: 'El rol debe ser uno de los siguientes: user, admin o vendedor.' })
   @IsOptional()
+  @IsEnum(['user', 'admin', 'vendedor'], { message: 'El rol debe ser uno de los siguientes: user, admin o vendedor.' })
   @ApiPropertyOptional({ enum: ['user', 'admin', 'vendedor']})
   role?: string;
 
+  @IsOptional()
   @IsEmail({}, { message: 'El correo electrónico no tiene un formato válido.' })
   @IsString({ message: 'El correo electrónico debe ser una cadena de texto.' })
   @ApiProperty()
