@@ -13,4 +13,8 @@ export class Store {
     @ApiProperty()
     @Column()
     description: string;
+
+    @ApiProperty()
+    @Column({ name: 'photo_url', nullable: true })
+    photoUrl: string | null;
 }

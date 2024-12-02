@@ -7,6 +7,7 @@ import * as bcrypt from 'bcryptjs';
 import { UpdateUserDto } from './dto/updateUser.dto';
 import { SupabaseService } from 'src/global/supabase.service';
 import { Wallet } from 'src/wallet/wallet.entity';
+import { ShoppingCart } from 'src/shopping-cart/shopping-cart.entity';
 
 @Injectable()
 export class UsersService {
@@ -15,6 +16,8 @@ export class UsersService {
     private readonly usersRepository: Repository<User>,
     @InjectRepository(Wallet)
     private readonly walletRepository: Repository<Wallet>,
+    @InjectRepository(ShoppingCart)
+    private readonly cartRepository: Repository<ShoppingCart>,
     private readonly supabaseService: SupabaseService,
   ) {}
 
@@ -42,9 +45,15 @@ export class UsersService {
       const savedUser = await this.usersRepository.save(newUser);
 
       const wallet = this.walletRepository.create({ user: savedUser, balance: 0 });
+      const cart = this.cartRepository.create({ user: savedUser, balance: 0, cartProducts: [] });
+
       await this.walletRepository.save(wallet);
 
+      await this.cartRepository.save(cart);
+
       savedUser.wallet = wallet;
+      savedUser.shoppingCart = cart;
+
       await this.usersRepository.save(savedUser);
 
       return savedUser;

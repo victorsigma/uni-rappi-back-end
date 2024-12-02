@@ -1,4 +1,4 @@
-import { Entity, Column, PrimaryGeneratedColumn, OneToOne, JoinColumn, OneToMany } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, OneToOne, JoinColumn, OneToMany, CreateDateColumn, UpdateDateColumn, DeleteDateColumn } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import { Store } from 'src/store/store.entity';
 import { Product } from 'src/product/product.entity';
@@ -14,11 +14,19 @@ export class Menu {
 
     @ApiProperty()
     @OneToOne(type => Store)
-    @JoinColumn()
-    @Column()
-    idStore: number;
+    @JoinColumn({ name: 'store_id', referencedColumnName: 'id' })
+    store: Store;
 
     @OneToMany(() => Product, product => product.menu)
     @JoinColumn()
     products: Product[];
+
+    @CreateDateColumn()
+    created_at: Date; // Creation date
+
+    @UpdateDateColumn()
+    updated_at: Date; // Last updated date
+
+    @DeleteDateColumn()
+    deleted_at: Date; // Deletion date
 }

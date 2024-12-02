@@ -1,12 +1,17 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { Roles } from 'src/auth/roles/roles.decorator';
 import { ProductService } from './product.service';
 import { RolesGuard } from 'src/auth/roles/roles.guard';
 import { JwtAuthGuard } from 'src/auth/jwt/jwt.guard';
 import { CreateProductDto } from './dto/createProduct.dto';
 import { UpdateProductDto } from './dto/updateProduct.dto';
+import { ApiBearerAuth, ApiBody, ApiConsumes, ApiTags } from '@nestjs/swagger';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { UploadImageDto } from './dto/uploadImage.dto';
 
+@ApiTags('Products')
 @Controller('products')
+@ApiBearerAuth()
 export class ProductController {
     constructor(private readonly productService: ProductService) { }
 
@@ -56,6 +61,23 @@ export class ProductController {
         return {
             message: `Product con ID ${id} actualizado exitosamente`,
             data: product
+        };
+    }
+
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles('admin', 'vendedor')
+    @Patch(':id/photo')
+    @UseInterceptors(FileInterceptor('photo'))
+    @ApiConsumes('multipart/form-data')
+    @ApiBody({
+        type: UploadImageDto,
+    })
+    async updatePhoto(@Param('id') id: number, @UploadedFile() file: Express.Multer.File) {
+        const photoUrl = await this.productService.uploadPhoto(file, id);
+        const updatedSale = await this.productService.updatePhoto(id, photoUrl);
+        return {
+            message: 'Foto de producto actualizada exitosamente',
+            data: updatedSale,
         };
     }
 }

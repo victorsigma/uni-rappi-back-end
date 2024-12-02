@@ -1,15 +1,16 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Menu } from './menu.entity';
-import { Repository } from 'typeorm';
+import { QueryRunner, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateMenuDto } from './dto/createMenu.dto';
 import { UpdateMenuDto } from './dto/updateMenu.dto';
+import { Store } from 'src/store/store.entity';
 
 @Injectable()
 export class MenuService {
     constructor(
         @InjectRepository(Menu)
-        private readonly menuRepository: Repository<Menu>
+        private readonly menuRepository: Repository<Menu>,
     ) { }
 
     async findByMenuname(menuname: string): Promise<Menu | undefined> {
@@ -17,7 +18,15 @@ export class MenuService {
     }
 
     async create(createMenuDto: CreateMenuDto): Promise<Menu> {
-        const newMenu = this.menuRepository.create({ ...createMenuDto });
+        const queryRunner: QueryRunner = this.menuRepository.manager.connection.createQueryRunner();
+
+        const store = await queryRunner.manager.findOne(Store, { where: { id: createMenuDto.idStore } });
+
+        if (!store) {
+            throw new Error(`Tienda con ID ${createMenuDto.idStore} no encontrada`);
+        }
+
+        const newMenu = this.menuRepository.create({ ...createMenuDto, store });
         return this.menuRepository.save(newMenu);
     }
 
@@ -26,11 +35,11 @@ export class MenuService {
     }
 
     async findOne(id: number): Promise<Menu> {
-        const user = await this.menuRepository.findOne({ where: { id } });
-        if (!user) {
+        const menu = await this.menuRepository.findOne({ where: { id } });
+        if (!menu) {
             throw new NotFoundException(`Menu con ID ${id} no encontrado`);
         }
-        return user;
+        return menu;
     }
 
     async remove(id: number): Promise<void> {

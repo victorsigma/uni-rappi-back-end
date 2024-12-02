@@ -1,15 +1,15 @@
 import { IsString, IsNotEmpty, IsOptional, IsNumber } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
-export class CreateMenuDto {
+export class CreateStoreDto {
   @IsString()
   @IsNotEmpty()
   @ApiProperty()
   storename: string;
 
   
-  @IsNumber()
+  @IsString()
   @IsNotEmpty()
   @ApiProperty()
-  description: number;
+  description: string;
 }

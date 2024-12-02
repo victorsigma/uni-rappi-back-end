@@ -8,12 +8,7 @@ export class SalesHistory {
     @PrimaryGeneratedColumn()
     id: number;
 
-    //@ManyToOne(() => User, user => user.salesHistories)
+    @ManyToOne(() => User)
     @ApiProperty()
     idUser: number; // The associated User object
-
-    @ManyToMany(() => Product)
-    @JoinTable()
-    @ApiProperty({ type: [Product] })
-    products: Product[]; // Array of associated products in this sales history
 }

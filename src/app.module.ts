@@ -12,6 +12,10 @@ import { ProductModule } from './product/product.module';
 import { SupabaseService } from './global/supabase.service';
 import { WalletModule } from './wallet/wallet.module';
 import { PaymentsModule } from './payments/payments.module';
+import { SalesModule } from './sales/sales.module';
+import { ShoppingCartController } from './shopping-cart/shopping-cart.controller';
+import { ShoppingCartService } from './shopping-cart/shopping-cart.service';
+import { ShoppingCartModule } from './shopping-cart/shopping-cart.module';
 
 
 @Module({
@@ -35,6 +39,8 @@ import { PaymentsModule } from './payments/payments.module';
     ProductModule,
     WalletModule,
     PaymentsModule,
+    SalesModule,
+    ShoppingCartModule,
   ],
   controllers: [AppController],
   providers: [AppService, SupabaseService],
