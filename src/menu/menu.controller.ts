@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiConsumes, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { MenuService } from './menu.service';
 import { CreateMenuDto } from './dto/createMenu.dto';
 import { JwtAuthGuard } from 'src/auth/jwt/jwt.guard';
@@ -24,15 +24,11 @@ export class MenuController {
     };
   }
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin', 'vendedor', 'comprador')
   @Get()
   findAll() {
     return this.menuService.findAll();
   }
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin', 'vendedor')
   @Get(':id')
   findOne(@Param('id') id: number) {
     return this.menuService.findOne(id);

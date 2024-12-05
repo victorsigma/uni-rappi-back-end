@@ -10,7 +10,7 @@ export class UpdateProductDto {
     @IsString()
     @IsOptional()
     @ApiPropertyOptional()
-    productDescription?: string;
+    description?: string;
 
     @IsNumber()
     @IsOptional()

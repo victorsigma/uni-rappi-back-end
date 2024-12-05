@@ -1,15 +1,18 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Product } from './product.entity';
-import { Like, Repository } from 'typeorm';
+import { Like, QueryRunner, Repository } from 'typeorm';
 import { CreateProductDto } from './dto/createProduct.dto';
 import { UpdateProductDto } from './dto/updateProduct.dto';
+import { Menu } from 'src/menu/menu.entity';
+import { SupabaseService } from 'src/global/supabase.service';
 
 @Injectable()
 export class ProductService {
     constructor(
         @InjectRepository(Product)
-        private readonly productRepository: Repository<Product>
+        private readonly productRepository: Repository<Product>,
+        private readonly supabaseService: SupabaseService,
     ) { }
 
     async findByProductname(productname: string): Promise<Product | undefined> {
@@ -17,7 +20,16 @@ export class ProductService {
     }
 
     async create(createProductDto: CreateProductDto): Promise<Product> {
-        const newProduct = this.productRepository.create({ ...createProductDto });
+        const queryRunner: QueryRunner = this.productRepository.manager.connection.createQueryRunner();
+
+        const menu = await queryRunner.manager.findOne(Menu, { where: { id: createProductDto.menu_id } });
+
+        if (!menu) {
+            throw new Error(`Menu con ID ${createProductDto.menu_id} no encontrado`);
+        }
+
+
+        const newProduct = this.productRepository.create({ ...createProductDto, menu });
         return this.productRepository.save(newProduct);
     }
 
@@ -26,11 +38,11 @@ export class ProductService {
     }
 
     async findOne(id: number): Promise<Product> {
-        const user = await this.productRepository.findOne({ where: { id } });
-        if (!user) {
+        const product = await this.productRepository.findOne({ where: { id } });
+        if (!product) {
             throw new NotFoundException(`Product con ID ${id} no encontrado`);
         }
-        return user;
+        return product;
     }
 
     async findSearch(name: string): Promise<Product[]> {
@@ -53,5 +65,30 @@ export class ProductService {
         Object.assign(ProductToUpdate, updateProductDto);
 
         return this.productRepository.save(ProductToUpdate);
+    }
+
+    async updatePhoto(id: number, photoUrl: string): Promise<Product> {
+        const productToUpdate = await this.findOne(id);
+        if (productToUpdate.photoUrl) {
+            await this.supabaseService.deleteFile(productToUpdate.photoUrl, 'Productos');
+        }
+        productToUpdate.photoUrl = photoUrl;
+        return this.productRepository.save(productToUpdate);
+    }
+
+    async uploadPhoto(file: Express.Multer.File, productId: number): Promise<string> {
+        const product = await this.findOne(productId); // Verificar que el usuario existe
+        if (!file) {
+            throw new BadRequestException('No se ha recibido ninguna imagen.');
+        }
+
+        // Verificar si el archivo es una imagen
+        const fileMimeType = file.mimetype;
+        if (!fileMimeType || !fileMimeType.startsWith('image/')) {
+            throw new BadRequestException('El archivo debe ser una imagen.');
+        }
+
+        const photoUrl = await this.supabaseService.uploadFile(file, 'Productos');
+        return photoUrl;
     }
 }

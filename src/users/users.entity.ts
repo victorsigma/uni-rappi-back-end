@@ -1,6 +1,8 @@
-import { Entity, Column, PrimaryGeneratedColumn, Unique, OneToOne, JoinColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, Unique, OneToOne, JoinColumn, OneToMany } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import { Wallet } from 'src/wallet/wallet.entity';
+import { Sales } from 'src/sales/sales.entity';
+import { ShoppingCart } from 'src/shopping-cart/shopping-cart.entity';
 
 @Entity()
 @Unique(['username'])
@@ -46,4 +48,14 @@ export class User {
   @OneToOne(() => Wallet, (wallet) => wallet.user, { cascade: true, onDelete: 'CASCADE' })
   @JoinColumn({ name: 'wallet_id' })
   wallet: Wallet;
+
+  @ApiProperty()
+  @OneToOne(() => ShoppingCart, (shoppingCart) => shoppingCart.user, { cascade: true, onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'shopping_cart_id' })
+  shoppingCart: ShoppingCart;
+
+  @ApiProperty()
+  @OneToMany(() => Sales, sale => sale.user, { cascade: true, onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'sale_id' })
+  sales: Sales[];
 }

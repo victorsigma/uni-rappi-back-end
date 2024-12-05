@@ -14,7 +14,7 @@ async function bootstrap() {
   });
 
   app.useGlobalPipes(new ValidationPipe());
-  app.useGlobalFilters(new GlobalExceptionFilter());
+  //app.useGlobalFilters(new GlobalExceptionFilter());
   app.useGlobalInterceptors(new ResponseInterceptor());
   const config = new DocumentBuilder()
     .setTitle('API Documentation')

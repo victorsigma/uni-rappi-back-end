@@ -10,7 +10,7 @@ export class CreateProductDto {
     @IsString()
     @IsNotEmpty()
     @ApiProperty()
-    productDescription: string;
+    description: string;
 
     @IsNumber()
     @IsNotEmpty()
@@ -25,5 +25,5 @@ export class CreateProductDto {
     @IsNumber()
     @IsNotEmpty()
     @ApiProperty()
-    idMenu: number;
+    menu_id: number;
 }

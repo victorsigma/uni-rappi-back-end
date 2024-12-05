@@ -1,14 +1,17 @@
-import { IsString, IsNotEmpty, IsOptional, IsNumber } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, IsNumber, IsArray } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
+import { Product } from 'src/product/product.entity';
+import { Type } from 'class-transformer';
 
-export class CreateMenuDto {
-    @IsString()
-    @IsNotEmpty()
-    @ApiProperty()
-    storename: string;
-
+export class CreateSalesHistoryDto {
     @IsNumber()
     @IsNotEmpty()
     @ApiProperty()
-    description: number;
+    idUser: number;
+
+    @IsArray()
+    @IsNotEmpty()
+    @Type(() => Product)
+    @ApiProperty()
+    products: Product[];
 }
