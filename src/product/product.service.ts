@@ -45,6 +45,14 @@ export class ProductService {
         return product;
     }
 
+    async findMenuId(id: number): Promise<Product[]> {
+        const product = await this.productRepository.find({ where: { menu: { id } } });
+        if (!product) {
+            throw new NotFoundException(`Product con ID ${id} no encontrado`);
+        }
+        return product;
+    }
+
     async findSearch(name: string): Promise<Product[]> {
         const products = await this.productRepository.find({where: { productname: Like(`%${name}%`)}});
         if(!products.length) {
