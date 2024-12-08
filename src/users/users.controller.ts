@@ -34,7 +34,7 @@ export class UsersController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin', 'vendedor')
+  @Roles('admin', 'vendedor', 'user')
   @Get(':id')
   findOne(@Param('id') id: number) {
     return this.usersService.findOne(id);
@@ -62,7 +62,7 @@ export class UsersController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin', 'vendedor', 'usuario')
+  @Roles('admin', 'vendedor', 'user')
   @Patch(':id/photo')
   @UseInterceptors(FileInterceptor('photo'))
   @ApiConsumes('multipart/form-data')
@@ -79,7 +79,7 @@ export class UsersController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin', 'vendedor', 'usuario')
+  @Roles('admin', 'vendedor', 'user')
   @Delete(':id/photo')
   async removePhoto(@Param('id') id: number) {
     await this.usersService.removePhoto(id);
