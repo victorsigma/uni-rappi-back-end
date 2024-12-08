@@ -41,7 +41,7 @@ export class UsersController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
+  @Roles('admin', 'vendedor', 'user')
   @Delete(':id')
   async remove(@Param('id') id: number) {
     await this.usersService.remove(id);
@@ -51,7 +51,7 @@ export class UsersController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
+  @Roles('admin', 'vendedor', 'user')
   @Patch(':id')
   async update(@Param('id') id: number, @Body() updateUserDto: UpdateUserDto) {
     const user = await this.usersService.update(id, updateUserDto);

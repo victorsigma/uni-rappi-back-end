@@ -13,7 +13,7 @@ export class PaymentsController {
   constructor(private readonly paymentsService: PaymentsService) {}
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin', 'vendedor', 'usuario')
+  @Roles('admin', 'vendedor', 'user')
   @Post('create-intent')
   async createPaymentIntent(@Body() body: PaymentsDto) {
     return this.paymentsService.createCheckoutSession(body.amount, body.userId);

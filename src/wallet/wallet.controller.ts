@@ -12,7 +12,7 @@ export class WalletController {
   constructor(private readonly walletService: WalletService) {}
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin', 'vendedor', 'usuario')
+  @Roles('admin', 'vendedor', 'user')
   @Get(':userId')
   async getWallet(@Param('userId') userId: number) {
     return this.walletService.getWalletByUser(userId);
