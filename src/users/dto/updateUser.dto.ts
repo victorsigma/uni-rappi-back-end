@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsEnum, IsEmail } from 'class-validator';
+import { IsString, IsOptional, IsEnum, IsEmail, IsPhoneNumber } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class UpdateUserDto {
@@ -22,6 +22,11 @@ export class UpdateUserDto {
   @IsString({ message: 'El correo electrónico debe ser una cadena de texto.' })
   @ApiProperty()
   email?: string;
+
+  @IsOptional()
+  @IsPhoneNumber('MX', { message: 'El número de teléfono no tiene un formato válido.' })
+  @ApiPropertyOptional({ description: 'Número de teléfono en formato válido E.164.' })
+  phonenumber?: string;
 
   @IsOptional()
   @IsString({ message: 'El número de control debe ser una cadena de texto.' })

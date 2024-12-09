@@ -36,8 +36,8 @@ export class PaymentsService {
           },
         ],
         mode: 'payment',
-        success_url: `http://localhost:3000/success?session_id={CHECKOUT_SESSION_ID}`, // Redirigir a una página de éxito
-        cancel_url: `http://localhost:3000/cancel`, // Redirigir a una página de cancelación
+        success_url: `${process.env.FRONT_END_URL}/creditos?status=success`, // Redirigir a una página de éxito
+        cancel_url: `${process.env.FRONT_END_URL}/creditos?status=cancel`, // Redirigir a una página de cancelación
         metadata: { userId: userId.toString() },
       });
 
