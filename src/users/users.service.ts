@@ -119,7 +119,6 @@ export class UsersService {
     }
   }
 
-
   async updatePhoto(id: number, photoUrl: string): Promise<User> {
     const userToUpdate = await this.findOne(id);
     if (userToUpdate.photoUrl) {

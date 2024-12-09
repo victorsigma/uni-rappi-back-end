@@ -21,6 +21,10 @@ export class User {
   email: string;
 
   @ApiProperty()
+  @Column({ name: 'phonenumber', nullable: true })
+  phonenumber: string | null;
+
+  @ApiProperty()
   @Column({ name: 'full_name' })
   fullName: string;
 
