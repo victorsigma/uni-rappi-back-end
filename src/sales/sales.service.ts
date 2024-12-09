@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { CreateSaleDto } from './dto/createSales.dto';
 import { Sales } from './sales.entity';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -8,6 +8,8 @@ import { Product } from 'src/product/product.entity';
 import { SaleProduct } from './sale-product.entity';
 import { Wallet } from 'src/wallet/wallet.entity';
 import { UpdateSaleDto } from './dto/updateSales.dto';
+import { CartProduct } from 'src/shopping-cart/cart-product.entity';
+import { ShoppingCart } from 'src/shopping-cart/shopping-cart.entity';
 
 @Injectable()
 @Injectable()
@@ -74,12 +76,13 @@ export class SalesService {
             const wallet = await queryRunner.manager.findOne(Wallet, { where: { user } });
 
             if (!wallet) {
-                throw new Error(`No se encontró billetera para el usuario con ID ${createSalesDto.user_id}`);
+                throw new HttpException(`No se encontró billetera para ${user.username}`, HttpStatus.BAD_REQUEST);
             }
 
             // Verificar si el saldo de la billetera es suficiente
             if (wallet.balance < balance) {
-                throw new Error(`Fondos insuficientes. El saldo disponible es ${wallet.balance}, pero la venta cuesta ${balance}`);
+                
+                throw new HttpException(`Fondos insuficientes. El saldo disponible es ${wallet.balance}, pero la venta cuesta ${balance}`, HttpStatus.BAD_REQUEST);
             }
 
             // Descontar el balance de la billetera
@@ -90,6 +93,24 @@ export class SalesService {
 
             // Actualizar el stock de los productos dentro de la misma transacción
             await Promise.all(products.map(product => queryRunner.manager.save(Product, product)));
+
+            const cart = await queryRunner.manager.findOne(ShoppingCart, {
+                where: { user: { id: user.id } },
+            });
+
+            const cartProducts = await queryRunner.manager
+                .createQueryBuilder(CartProduct, 'cart_product')
+                .innerJoinAndSelect('cart_product.product', 'product') // Relaciona con la tabla 'product'
+                .where('cart_product.cart_id = :cart_id', { cart_id: cart.id })
+                .getMany();
+
+            //Limpiar carrito
+            await Promise.all(cartProducts.map(product => queryRunner.manager.remove(CartProduct, product)));
+
+            cart.balance = 0;
+
+            // Guardar el carrito actualizado en la transacción
+            await queryRunner.manager.save(ShoppingCart, cart);
 
             // Crear la venta
             const sale = this.salesRepository.create({
@@ -109,7 +130,7 @@ export class SalesService {
         } catch (error) {
             // Si ocurre un error, revertimos la transacción
             await queryRunner.rollbackTransaction();
-            throw new Error('Error al guardar la venta: ' + error.message);
+            return error.message;
         } finally {
             // Liberar el QueryRunner
             await queryRunner.release();
@@ -126,7 +147,7 @@ export class SalesService {
         const user = await queryRunner.manager.findOne(User, { where: { id: user_id } });
 
         if (!user) {
-            throw new Error(`Usuario con ID ${user_id} no encontrado`);
+            throw new HttpException('Usuario no encontrado', HttpStatus.BAD_REQUEST);
         }
 
         const sales = await this.salesRepository.find({ where: { user } });
@@ -139,7 +160,7 @@ export class SalesService {
                 .getMany();
 
             if (!saleProducts) {
-                throw new Error(`Productos de la venta ${sale.id} no encontrados`);
+                throw new HttpException('Productos no encontrados', HttpStatus.BAD_REQUEST);
             }
             return { id: sale.id, balance: sale.balance, saleProducts }
         })
@@ -175,7 +196,7 @@ export class SalesService {
             // Si solo tenemos una fecha exacta
             const date = new Date(created_at);
             if (isNaN(date.getTime())) {
-                throw new Error('Fecha proporcionada no válida');
+                throw new HttpException('Fecha proporcionada no válida', HttpStatus.BAD_REQUEST);
             }
             date.setHours(23, 59, 59, 999);
             whereConditions.created_at = Between(created_at, date);
