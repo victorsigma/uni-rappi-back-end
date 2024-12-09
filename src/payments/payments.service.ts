@@ -13,74 +13,52 @@ export class PaymentsService {
     });
   }
 
-  // Este método crea una sesión de pago de Stripe Checkout
-  async createCheckoutSession(amount: number, userId: number): Promise<any> {
+  async createPaymentIntent(amount: number, userId: number): Promise<any> {
     const user = await this.userService.findOne(userId);
     if (!user) {
       throw new NotFoundException('Usuario no encontrado');
     }
+
     try {
-      // Crear la sesión de pago de Stripe Checkout
-      const session = await this.stripe.checkout.sessions.create({
-        payment_method_types: ['card'],
-        line_items: [
-          {
-            price_data: {
-              currency: 'mxn', // Moneda
-              product_data: {
-                name: 'Recarga de saldo',
-              },
-              unit_amount: amount * 100, // Convertir a centavos
-            },
-            quantity: 1,
-          },
-        ],
-        mode: 'payment',
-        success_url: `${process.env.FRONT_END_URL}/creditos?status=success`, // Redirigir a una página de éxito
-        cancel_url: `${process.env.FRONT_END_URL}/creditos?status=cancel`, // Redirigir a una página de cancelación
-        metadata: { userId: userId.toString() },
+      // Crear el Payment Intent
+      const paymentIntent = await this.stripe.paymentIntents.create({
+        amount: amount * 100, // Convertir a centavos
+        currency: 'mxn', // Moneda
+        payment_method_types: ['card'], // Métodos de pago permitidos
+        metadata: { userId: userId.toString() }, // Información extra
       });
 
-      // Devolvemos la URL de la sesión para que el cliente pueda ser redirigido
-      return { url: session.url };
+      return { clientSecret: paymentIntent.client_secret };
     } catch (error) {
-      throw new BadRequestException('Error al crear la sesión de pago');
+      throw new BadRequestException(error.message || 'Error al crear el Payment Intent');
     }
   }
 
   async handlePaymentWebhook(event: any): Promise<void> {
     switch (event.type) {
-      case 'checkout.session.completed': {
+      case 'payment_intent.succeeded': {
         // El pago fue exitoso, actualizar el saldo de la wallet
-        const session = event.data.object as Stripe.Checkout.Session;
-        const userId = Number(session.metadata.userId); // Usamos el userId que pasamos en metadata
-        const amount = session.amount_total / 100; // Convertimos de centavos a pesos
+        const paymentIntent = event.data.object as Stripe.PaymentIntent;
+        const userId = Number(paymentIntent.metadata.userId); // Usamos el userId que pasamos en metadata
+        const amount = paymentIntent.amount_received / 100; // Convertimos de centavos a pesos
         await this.walletService.rechargeWallet(userId, amount);
-        break;
-      }
-      
-      case 'checkout.session.async_payment_succeeded': {
-        // El pago se completó de manera asincrónica
-        const session = event.data.object as Stripe.Checkout.Session;
-        const userId = Number(session.metadata.userId);
-        const amount = session.amount_total / 100;
-        await this.walletService.rechargeWallet(userId, amount);
-        break;
-      }
-      
-      case 'checkout.session.async_payment_failed': {
-        // El pago asincrónico falló
-        const session = event.data.object as Stripe.Checkout.Session;
-        const userId = Number(session.metadata.userId);
-        // Aquí podrías notificar al usuario que el pago ha fallado
         break;
       }
 
-      case 'checkout.session.expired': {
-        // La sesión de pago expiró sin completar el pago
-        const session = event.data.object as Stripe.Checkout.Session;
-        const userId = Number(session.metadata.userId);
-        // Aquí podrías manejar si quieres notificar al usuario sobre la expiración
+      case 'payment_intent.payment_failed': {
+        // El pago falló, puedes notificar al usuario
+        const paymentIntent = event.data.object as Stripe.PaymentIntent;
+        const userId = Number(paymentIntent.metadata.userId);
+        const amount = paymentIntent.amount_received / 100;
+        // Aquí puedes notificar al usuario que el pago ha fallado
+        break;
+      }
+
+      case 'payment_intent.canceled': {
+        // El pago fue cancelado
+        const paymentIntent = event.data.object as Stripe.PaymentIntent;
+        const userId = Number(paymentIntent.metadata.userId);
+        // Aquí podrías manejar si quieres notificar al usuario sobre la cancelación
         break;
       }
 

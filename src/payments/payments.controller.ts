@@ -16,7 +16,7 @@ export class PaymentsController {
   @Roles('admin', 'vendedor', 'user')
   @Post('create-intent')
   async createPaymentIntent(@Body() body: PaymentsDto) {
-    return this.paymentsService.createCheckoutSession(body.amount, body.userId);
+    return this.paymentsService.createPaymentIntent(body.amount, body.userId);
   }
 
   @Post('webhook')
