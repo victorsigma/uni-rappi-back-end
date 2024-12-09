@@ -42,6 +42,11 @@ export class ProductController {
     findOne(@Param('id') id: number) {
         return this.productService.findOne(id);
     }
+    
+    @Get('/menu/:id')
+    findMenuId(@Param('id') id: number) {
+        return this.productService.findMenuId(id);
+    }
 
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles('admin')
