@@ -16,6 +16,41 @@ export class ShoppingCartService {
         private readonly cartProductRepository: Repository<CartProduct>,
     ) { }
 
+    async find(id: number): Promise<ShoppingCart> {
+        const queryRunner: QueryRunner = this.cartRepository.manager.connection.createQueryRunner();
+        await queryRunner.startTransaction();
+
+        try {
+            // Obtener el carrito del usuario
+            let cart = await this.cartRepository.findOne({
+                where: { user: { id } },
+            });
+
+            if (!cart) {
+                throw new Error('Cart not found');
+            }
+
+            // Obtener los productos del carrito con la información del producto
+            const cartProducts = await queryRunner.manager
+                .createQueryBuilder(CartProduct, 'cart_product')
+                .innerJoinAndSelect('cart_product.product', 'product') // Relaciona con la tabla 'product'
+                .where('cart_product.cart_id = :cart_id', { cart_id: cart.id })
+                .getMany();
+
+            // Aquí puedes agregar más lógica si necesitas hacer algo con los productos obtenidos.
+
+            await queryRunner.commitTransaction();
+
+            // Retorna el carrito con los productos
+            return { ...cart, cartProducts };
+        } catch (error) {
+            await queryRunner.rollbackTransaction();
+            throw error;
+        } finally {
+            await queryRunner.release();
+        }
+    }
+
     async add(id: number, updateCartDto: UpdateShoppingCartDto): Promise<ShoppingCart> {
         const queryRunner: QueryRunner = this.cartRepository.manager.connection.createQueryRunner();
 
@@ -52,7 +87,7 @@ export class ShoppingCartService {
             }
 
             const cartProducts = await queryRunner.manager
-            .createQueryBuilder(CartProduct, 'sale_product')
+                .createQueryBuilder(CartProduct, 'sale_product')
                 .innerJoinAndSelect('sale_product.product', 'product')
                 .where('sale_product.cart_id = :cart_id', { cart_id: cart.id })
                 .getMany();
@@ -87,14 +122,12 @@ export class ShoppingCartService {
             }
 
             const products = await queryRunner.manager
-            .createQueryBuilder(CartProduct, 'sale_product')
+                .createQueryBuilder(CartProduct, 'sale_product')
                 .innerJoinAndSelect('sale_product.product', 'product')
                 .where('sale_product.cart_id = :cart_id', { cart_id: cart.id })
                 .getMany();
 
             cart.balance = products.reduce((sum, cartProduct) => Number(sum) + Number(cartProduct.total), 0);
-
-            console.log(products.reduce((sum, cartProduct) => Number(sum) + Number(cartProduct.total), 0));
 
             // Guardar el carrito actualizado en la transacción
             const updateCart = await queryRunner.manager.save(ShoppingCart, cart);
@@ -116,47 +149,47 @@ export class ShoppingCartService {
 
     async remove(id: number, updateCartDto: UpdateShoppingCartDto): Promise<ShoppingCart> {
         const queryRunner: QueryRunner = this.cartRepository.manager.connection.createQueryRunner();
-    
+
         // Iniciar la transacción
         await queryRunner.startTransaction();
-    
+
         try {
             // Buscar el usuario
             const user = await queryRunner.manager.findOne(User, { where: { id } });
-    
+
             if (!user) {
                 throw new Error(`Usuario con ID ${id} no encontrado`);
             }
-    
+
             // Obtener producto de manera concurrente
             const product = await queryRunner.manager.findOne(Product, { where: { id: updateCartDto.product.id } });
-    
+
             // Verificar que el producto exista
             if (!product) {
                 throw new Error(`Producto con ID ${updateCartDto.product.id} no encontrado`);
             }
-    
+
             // Obtener el carrito del usuario
             let cart = await this.cartRepository.findOne({ where: { user } });
-    
+
             if (!cart) {
                 throw new Error(`Carrito no encontrado para el usuario con ID ${id}`);
             }
-    
+
             // Obtener los productos en el carrito
             const cartProducts = await queryRunner.manager
                 .createQueryBuilder(CartProduct, 'sale_product')
                 .innerJoinAndSelect('sale_product.product', 'product')
                 .where('sale_product.cart_id = :cart_id', { cart_id: cart.id })
                 .getMany();
-    
+
             // Verificar si el producto existe en el carrito
             const cartProduct = cartProducts.find(cp => cp.product.id === updateCartDto.product.id);
-    
+
             if (!cartProduct) {
                 throw new Error(`Producto con ID ${updateCartDto.product.id} no encontrado en el carrito`);
             }
-    
+
             // Si la cantidad es mayor a 1, solo reducimos la cantidad
             if (cartProduct.quantity > updateCartDto.product.quantity) {
                 cartProduct.quantity -= updateCartDto.product.quantity;
@@ -166,24 +199,24 @@ export class ShoppingCartService {
                 // Si la cantidad es 1 o menor, eliminamos el producto del carrito
                 await queryRunner.manager.remove(cartProduct);
             }
-    
+
             // Actualizamos el balance del carrito
             const updatedCartProducts = await queryRunner.manager
                 .createQueryBuilder(CartProduct, 'sale_product')
                 .innerJoinAndSelect('sale_product.product', 'product')
                 .where('sale_product.cart_id = :cart_id', { cart_id: cart.id })
                 .getMany();
-    
+
             cart.balance = updatedCartProducts.reduce((sum, cartProduct) => Number(sum) + Number(cartProduct.total), 0);
-    
+
             // Guardar el carrito actualizado en la transacción
             const updatedCart = await queryRunner.manager.save(ShoppingCart, cart);
-    
+
             // Confirmar la transacción
             await queryRunner.commitTransaction();
-    
+
             return updatedCart;
-    
+
         } catch (error) {
             // Si ocurre un error, revertimos la transacción
             await queryRunner.rollbackTransaction();
@@ -192,5 +225,78 @@ export class ShoppingCartService {
             // Liberar el QueryRunner
             await queryRunner.release();
         }
-    }    
+    }
+
+    async removeProduct(id: number, updateCartDto: UpdateShoppingCartDto): Promise<ShoppingCart> {
+        const queryRunner: QueryRunner = this.cartRepository.manager.connection.createQueryRunner();
+
+        // Iniciar la transacción
+        await queryRunner.startTransaction();
+
+        try {
+            // Buscar el usuario
+            const user = await queryRunner.manager.findOne(User, { where: { id } });
+
+            if (!user) {
+                throw new Error(`Usuario con ID ${id} no encontrado`);
+            }
+
+            // Obtener producto de manera concurrente
+            const product = await queryRunner.manager.findOne(Product, { where: { id: updateCartDto.product.id } });
+
+            // Verificar que el producto exista
+            if (!product) {
+                throw new Error(`Producto con ID ${updateCartDto.product.id} no encontrado`);
+            }
+
+            // Obtener el carrito del usuario
+            let cart = await this.cartRepository.findOne({ where: { user } });
+
+            if (!cart) {
+                throw new Error(`Carrito no encontrado para el usuario con ID ${id}`);
+            }
+
+            // Obtener los productos en el carrito
+            const cartProducts = await queryRunner.manager
+                .createQueryBuilder(CartProduct, 'sale_product')
+                .innerJoinAndSelect('sale_product.product', 'product')
+                .where('sale_product.cart_id = :cart_id', { cart_id: cart.id })
+                .getMany();
+
+            // Verificar si el producto existe en el carrito
+            const cartProduct = cartProducts.find(cp => cp.product.id === updateCartDto.product.id);
+
+            if (!cartProduct) {
+                throw new Error(`Producto con ID ${updateCartDto.product.id} no encontrado en el carrito`);
+            }
+
+            // Si la cantidad es mayor a 1, solo reducimos la cantidad
+            queryRunner.manager.remove(cartProduct);
+
+            // Actualizamos el balance del carrito
+            const updatedCartProducts = await queryRunner.manager
+                .createQueryBuilder(CartProduct, 'sale_product')
+                .innerJoinAndSelect('sale_product.product', 'product')
+                .where('sale_product.cart_id = :cart_id', { cart_id: cart.id })
+                .getMany();
+
+            cart.balance = updatedCartProducts.reduce((sum, cartProduct) => Number(sum) + Number(cartProduct.total), 0);
+
+            // Guardar el carrito actualizado en la transacción
+            const updatedCart = await queryRunner.manager.save(ShoppingCart, cart);
+
+            // Confirmar la transacción
+            await queryRunner.commitTransaction();
+
+            return updatedCart;
+
+        } catch (error) {
+            // Si ocurre un error, revertimos la transacción
+            await queryRunner.rollbackTransaction();
+            throw new HttpException('Error al eliminar el producto del carrito: ' + error.message, HttpStatus.BAD_REQUEST);
+        } finally {
+            // Liberar el QueryRunner
+            await queryRunner.release();
+        }
+    }
 }
