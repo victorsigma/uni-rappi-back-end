@@ -14,7 +14,18 @@ export class ShoppingCartController {
     constructor(private readonly cartService: ShoppingCartService) { }
 
     @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles('admin', 'vendedor', 'comprador')
+    @Roles('admin', 'vendedor', 'user')
+    @Get(':id')
+    async findByUserId(@Param('id') id: number) {
+        const cart = await this.cartService.find(id);
+        return {
+            message: `Cart con ID ${id} actualizado exitosamente`,
+            data: cart
+        };
+    }
+
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles('admin', 'vendedor', 'user')
     @Patch(':id')
     async update(@Param('id') id: number, @Body() updateCartDto: UpdateShoppingCartDto) {
         const cart = await this.cartService.add(id, updateCartDto);
@@ -25,10 +36,21 @@ export class ShoppingCartController {
     }
 
     @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles('admin', 'vendedor', 'comprador')
+    @Roles('admin', 'vendedor', 'user')
     @Delete(':id')
     async remove(@Param('id') id: number, @Body() updateCartDto: UpdateShoppingCartDto) {
         const cart = await this.cartService.remove(id, updateCartDto);
+        return {
+            message: `Cart con ID ${id} actualizado exitosamente`,
+            data: cart
+        };
+    }
+
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles('admin', 'vendedor', 'user')
+    @Delete('/product/:id')
+    async removeProduct(@Param('id') id: number, @Body() updateCartDto: UpdateShoppingCartDto) {
+        const cart = await this.cartService.removeProduct(id, updateCartDto);
         return {
             message: `Cart con ID ${id} actualizado exitosamente`,
             data: cart

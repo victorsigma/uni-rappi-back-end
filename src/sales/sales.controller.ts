@@ -6,6 +6,8 @@ import { CreateSaleDto } from './dto/createSales.dto';
 import { SalesService } from './sales.service';
 import { ApiBearerAuth, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { UpdateSaleDto } from './dto/updateSales.dto';
+import { isString } from 'class-validator';
+import { error } from 'console';
 
 @ApiTags('Sales')
 @Controller('sales')
@@ -14,18 +16,20 @@ export class SalesController {
     constructor(private readonly salesService: SalesService) { }
 
     @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles('admin', 'comprador')
+    @Roles('admin', 'user')
     @Post()
     async create(@Body() createSaleDto: CreateSaleDto) {
         const sale = await this.salesService.create(createSaleDto);
-        return {
-            message: 'Sale creado exitosamente',
-            data: sale
+        const res = {
+            message: isString(sale) ? sale : 'Sale creado exitosamente',
+            data: isString(sale) ? { error: true } : sale
         };
+
+        return res;
     }
 
     @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles('admin', 'vendedor', 'comprador')
+    @Roles('admin', 'vendedor', 'user')
     @Get('/user/:id')
     async findAllForUser(@Param('id') id: number) {
         const sales = await this.salesService.findAllForUser(id);
@@ -33,17 +37,17 @@ export class SalesController {
     }
 
     @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles('admin', 'vendedor', 'comprador')
+    @Roles('admin', 'vendedor', 'user')
     @Get('/filter/')
     @ApiQuery({ name: 'created_at', required: false, type: String })
     @ApiQuery({ name: 'user_id', required: false, type: String })
     @ApiQuery({ name: 'cancel', required: false, type: String })
     @ApiQuery({ name: 'start_date', required: false, type: String })
     @ApiQuery({ name: 'end_date', required: false, type: String })
-    async findAllFilter(@Query('created_at') created_at?: string, @Query('user_id') user_id?: string, 
-    @Query('cancel') cancel?: string, 
-    @Query('start_date') start_date?: string, 
-    @Query('end_date') end_date?: string) {
+    async findAllFilter(@Query('created_at') created_at?: string, @Query('user_id') user_id?: string,
+        @Query('cancel') cancel?: string,
+        @Query('start_date') start_date?: string,
+        @Query('end_date') end_date?: string) {
         const parsedCreatedAt = created_at ? new Date(created_at) : undefined;
         const parsedUserId = user_id ? Number(user_id) : undefined;
         const parsedCancel = cancel ? cancel.toLowerCase() === 'true' : undefined;
