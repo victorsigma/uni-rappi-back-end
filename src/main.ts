@@ -8,7 +8,7 @@ import { ResponseInterceptor } from './global/responseInterceptor';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.enableCors({
-    origin: [process.env.FRONT_END_URL],
+    origin: '*',
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true, // Si necesitas enviar cookies o encabezados de autenticación
   });
